@@ -13,57 +13,36 @@
 
 <div class="container">
     <h1>Javascript Editor</h1>
+    <p>Powered By <a href="https://highlightjs.org/" target="_blank">Highlight.js</a></p>
     <div class="code">
         <code>
-           <pre>const {Router} = require("express")
-
-const router = new Router()
-const authController = require("../controllers/auth")
-const accessApi = require("../middlewares/accessApi")
-const authenticated = require("../middlewares/authenticated")
-
-
-/*
-* @desc Login User
-* @method POST
-* @route /api/auth/login
-* @body []
-* @headers [Accept]
-*/
-router.post("/auth/login", accessApi, authController.login)
+           <pre>// connect to DB MONGO
+const mongoose = require("mongoose").default
+const {v4} = require("uuid")
+const bcrypt = require("bcrypt")
+const User = require("../models/users")
 
 
-/*
-* @desc Login User With Email and password
-* @method POST
-* @route /api/auth/login/v2
-* @body [email , password]
-* @headers [ Accept ]
-*/
-router.post("/auth/login/v2", accessApi, authController.loginV2)
+exports.connectDB = async () => {
+    try {
+        const connect = await mongoose.connect(process.env.MONGO_URI)
+        console.log("Database Connected successfully")
+    } catch(err) {
+        console.log(err)
+    }
+}
 
 
-/*
-* @desc Verify Otp Password
-* @method GET
-* @route /api/auth/verify
-* @body []
-* @headers [ Accept ]
-* @query [ otp , token ]
-*/
-router.get("/auth/verify", accessApi, authController.verify)
+// Create Default Admin Account
 
-/*
-* @desc Completion Information User Data
-* @method POST
-* @route /api/auth/completion-information
-* @body [ username ,fullname ,email ]
-* @headers [Accept]
-*/
-router.post("/auth/completion-information" , accessApi, authenticated.user ,  authController.completionInformation)
-
-module.exports = router
-        </pre>
+exports.defineDefaultAdminAccount = async () => {
+    const adminData = JSON.parse(process.env.ADMIN_DEFUALT_RECORD)
+    const hashPassword = await bcrypt.hash(adminData.password , 10)
+    const adminExists = await User.findOne({username: "@admin"})
+    if (!adminExists) {
+        await User.create({userID: v4(), ...adminData , password: hashPassword})
+    }
+}</pre>
         </code>
     </div>
 </div>
